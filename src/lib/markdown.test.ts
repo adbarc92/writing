@@ -83,4 +83,17 @@ describe('link rewriting', () => {
   it('keeps the link text', () => {
     expect(parseMarkdown('[continue here](/eidos)').html).toContain('>continue here</a>');
   });
+
+  it('leaves a protocol-relative href untouched', () => {
+    expect(parseMarkdown('[cdn](//example.com/a)').html).toContain('href="//example.com/a"');
+  });
+
+  it('escapes a double quote in a link title', () => {
+    expect(parseMarkdown(`[x](/a 'a "quoted" title')`).html)
+      .toContain('title="a &quot;quoted&quot; title"');
+  });
+
+  it('does not double-prefix an href already under the base path', () => {
+    expect(parseMarkdown('[x](/writing/eidos)').html).toContain('href="/writing/eidos"');
+  });
 });

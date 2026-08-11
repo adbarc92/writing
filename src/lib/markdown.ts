@@ -1,7 +1,8 @@
 import { parse as parseYaml } from 'yaml';
 import { marked, type Tokens } from 'marked';
 import hljs from 'highlight.js';
-import { withBase } from './site';
+import { withBase, BASE_PATH } from './site';
+import { escapeAttr } from './escape';
 
 // Configure marked with syntax highlighting
 marked.use({
@@ -15,10 +16,14 @@ marked.use({
     },
     link({ href, title, tokens }: Tokens.Link): string {
       // Root-relative hrefs in content are app paths and need the base path;
-      // absolute URLs, mailto:, and #anchors are left exactly as authored.
-      const resolved = href.startsWith('/') ? withBase(href) : href;
+      // protocol-relative (`//host/...`), absolute URLs, mailto:, and #anchors
+      // are left exactly as authored, and an href already under the base path
+      // is left alone too, so content is never doubled up.
+      const isRootRelative = href.startsWith('/') && !href.startsWith('//');
+      const alreadyBased = href === BASE_PATH || href.startsWith(`${BASE_PATH}/`);
+      const resolved = isRootRelative && !alreadyBased ? withBase(href) : href;
       const text = this.parser.parseInline(tokens);
-      const titleAttr = title ? ` title="${title}"` : '';
+      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
       return `<a href="${resolved}"${titleAttr}>${text}</a>`;
     },
   },

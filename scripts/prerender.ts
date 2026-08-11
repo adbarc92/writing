@@ -137,7 +137,7 @@ function render(page: Page): string {
     `<meta property="og:title" content="${escapeAttr(page.title)}" />`,
     `<meta property="og:description" content="${escapeAttr(page.description)}" />`,
     `<meta property="og:url" content="${escapeAttr(url)}" />`,
-    SITE.image ? `<meta property="og:image" content="${escapeAttr(SITE.origin + SITE.image)}" />` : '',
+    SITE.image ? `<meta property="og:image" content="${escapeAttr(absoluteUrl(SITE.image))}" />` : '',
     `<meta name="twitter:card" content="${SITE.image ? 'summary_large_image' : 'summary'}" />`,
     `<link rel="alternate" type="application/rss+xml" title="${escapeAttr(SITE.title)}" href="${SITE.origin}${BASE_PATH}/rss.xml" />`,
   ]
