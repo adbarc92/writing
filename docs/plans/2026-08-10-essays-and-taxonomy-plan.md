@@ -2401,6 +2401,195 @@ git commit -m "test: cover date formatting, slugs, markdown config, escaping, an
 
 ---
 
+### Task 15: Serve from a subpath as a GitHub Pages project site
+
+Added after the branch was found to be aimed at the wrong repository. `adbarc92/adbarc92.github.io` is no longer a source repo: `portfolio-treatise` deploys build output onto its `main`, and its deploy script runs `git rm -rq .` on the target first, so anything committed there is destroyed on the next deploy. The React site's own history is preserved on that repo under the `v1` tag.
+
+The writing site therefore moves to `adbarc92/writing` and is served at `https://adbarc92.github.io/writing/`, leaving the treatise as the front door at the domain root. The two are complements: the treatise's `claims.yaml` already declares an essays section whose entries are hidden because their `url` fields are empty, and this is what those URLs will point at.
+
+Everything the site emits currently assumes it sits at the domain root — canonical URLs, the sitemap, the feed, the router, and the root-relative links written inside the markdown content. All of it needs a base path.
+
+**Files:**
+- Modify: `vite.config.ts`, `src/App.tsx`, `src/lib/site.ts`, `src/lib/markdown.ts`, `scripts/prerender.ts`, `README.md`
+- Create: `src/lib/site.test.ts`
+- Modify: `src/lib/markdown.test.ts`
+
+**Interfaces:**
+- Produces: `BASE_PATH`, `withBase(path: string): string`, and `absoluteUrl(route: string): string` from `src/lib/site.ts`.
+
+- [ ] **Step 1: Add the base-path helpers to `src/lib/site.ts`**
+
+Append below the existing exports. The module stays pure — no `import.meta`, no side effects — because the prerender script imports it.
+
+```ts
+/**
+ * The site is a GitHub Pages *project* site, served from a subpath rather than
+ * the domain root: the treatise occupies the root. Vite's `base`, the router's
+ * `basename`, and every absolute URL the build emits must agree on this value.
+ */
+export const BASE_PATH = '/writing';
+
+/** Prefix a root-relative app path with the base path. `/` becomes `/writing/`. */
+export function withBase(path: string): string {
+  return path === '/' ? `${BASE_PATH}/` : `${BASE_PATH}${path}`;
+}
+
+/** The canonical absolute URL for a route, e.g. `/blog/x` -> `https://…/writing/blog/x`. */
+export function absoluteUrl(route: string): string {
+  return `${SITE.origin}${withBase(route)}`;
+}
+```
+
+- [ ] **Step 2: Set Vite's base**
+
+In `vite.config.ts`, add `base: '/writing/',` to the config object, above `plugins`. Vite's `base` requires the trailing slash; `BASE_PATH` deliberately omits it, because it is concatenated with paths that begin with one.
+
+- [ ] **Step 3: Give the router its basename**
+
+In `src/App.tsx`, import `BASE_PATH` from `./lib/site` and pass it as the router's basename:
+
+```tsx
+const router = createBrowserRouter([
+  // …unchanged route definitions…
+], { basename: BASE_PATH });
+```
+
+Every `<Link to="/blog">` in the app then resolves correctly with no further change — react-router prepends the basename itself. Do not hand-prefix any `to` prop.
+
+- [ ] **Step 4: Rewrite root-relative links inside rendered markdown**
+
+This is the part the router cannot fix. The essay ends with a link to `/eidos`, and two specification documents cross-link to `/eidos/form-template` and `/eidos/infrastructure`. Those become plain `<a href="/eidos">` in the rendered HTML, which at the domain root now belongs to the treatise — the reader would land on the wrong site.
+
+In `src/lib/markdown.ts`, import `withBase` from `./site` and add a `link` renderer beside the existing `code` one:
+
+```ts
+    link({ href, title, tokens }: Tokens.Link): string {
+      // Root-relative hrefs in content are app paths and need the base path;
+      // absolute URLs, mailto:, and #anchors are left exactly as authored.
+      const resolved = href.startsWith('/') ? withBase(href) : href;
+      const text = this.parser.parseInline(tokens);
+      const titleAttr = title ? ` title="${title}"` : '';
+      return `<a href="${resolved}"${titleAttr}>${text}</a>`;
+    },
+```
+
+`this.parser` is available because marked binds the renderer object as `this`; write it as a method, not an arrow function, or `this` will be undefined. Verify the exact behaviour with the tests in Step 7 rather than assuming the signature — marked's renderer API has changed across major versions, and this project is on v17.
+
+- [ ] **Step 5: Emit base-aware URLs from the prerender script**
+
+In `scripts/prerender.ts`, import `absoluteUrl` and `BASE_PATH` alongside the existing `SITE` import, then replace every place a URL is built by hand:
+
+- The per-page `const url = ...` becomes `const url = absoluteUrl(page.route);` — this fixes `<link rel="canonical">` and `og:url` together.
+- The RSS alternate link in the head becomes `href="${SITE.origin}${BASE_PATH}/rss.xml"`.
+- Each RSS item's `<link>` and `<guid>` become `absoluteUrl('/blog/' + p.slug)`.
+- The RSS channel `<link>` becomes `absoluteUrl('/blog')`, and the `atom:link` self href becomes `${SITE.origin}${BASE_PATH}/rss.xml`.
+- Each sitemap `<loc>` becomes `absoluteUrl(p.route)`.
+
+The `dist/` directory layout does not change: Pages maps the repository's published output to `/writing/`, so `dist/blog/x/index.html` is served at `/writing/blog/x/`.
+
+- [ ] **Step 6: Update `README.md`**
+
+Change the site URL to `https://adbarc92.github.io/writing` and add one line under Deployment noting that the domain root is served by a separate project (`portfolio-treatise`) and that this repository is a Pages project site. Keep the rest of the file as it is.
+
+- [ ] **Step 7: Test the two things that can silently break**
+
+Create `src/lib/site.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { BASE_PATH, withBase, absoluteUrl, pageTitle, SITE } from './site';
+
+describe('withBase', () => {
+  it('prefixes a root-relative path', () => {
+    expect(withBase('/blog')).toBe('/writing/blog');
+    expect(withBase('/eidos/form-template')).toBe('/writing/eidos/form-template');
+  });
+
+  it('turns the root into a trailing-slash base path, not a bare prefix', () => {
+    expect(withBase('/')).toBe('/writing/');
+  });
+
+  it('never doubles the base path', () => {
+    expect(withBase('/blog')).not.toContain(`${BASE_PATH}${BASE_PATH}`);
+  });
+});
+
+describe('absoluteUrl', () => {
+  it('builds a canonical URL under the base path', () => {
+    expect(absoluteUrl('/blog/eidos-an-architecture-for-cheap-code'))
+      .toBe('https://adbarc92.github.io/writing/blog/eidos-an-architecture-for-cheap-code');
+  });
+
+  it('builds the site root correctly', () => {
+    expect(absoluteUrl('/')).toBe('https://adbarc92.github.io/writing/');
+  });
+
+  it('never emits a double slash after the origin', () => {
+    expect(absoluteUrl('/blog').replace('https://', '')).not.toContain('//');
+  });
+});
+
+describe('pageTitle', () => {
+  it('returns the bare site title with no argument', () => {
+    expect(pageTitle()).toBe(SITE.title);
+  });
+
+  it('suffixes the site title otherwise', () => {
+    expect(pageTitle('Writing')).toBe(`Writing — ${SITE.title}`);
+  });
+});
+```
+
+Add to `src/lib/markdown.test.ts`:
+
+```ts
+describe('link rewriting', () => {
+  it('prefixes a root-relative content link with the base path', () => {
+    // The essay links to /eidos; at the domain root that is a different site.
+    expect(parseMarkdown('[continue here](/eidos)').html).toContain('href="/writing/eidos"');
+  });
+
+  it('leaves an external URL untouched', () => {
+    expect(parseMarkdown('[x](https://example.com/a)').html).toContain('href="https://example.com/a"');
+  });
+
+  it('leaves an anchor link untouched', () => {
+    expect(parseMarkdown('[x](#thesis)').html).toContain('href="#thesis"');
+  });
+
+  it('keeps the link text', () => {
+    expect(parseMarkdown('[continue here](/eidos)').html).toContain('>continue here</a>');
+  });
+});
+```
+
+- [ ] **Step 8: Verify**
+
+Run: `npm test && npm run build && npm run lint`
+Expected: all tests pass; the build still reports `prerender: wrote 12 pages + 404.html, rss.xml, sitemap.xml`.
+
+Then confirm the base path reached every emitted URL:
+
+```bash
+grep -o 'rel="canonical" href="[^"]*"' dist/blog/eidos-an-architecture-for-cheap-code/index.html
+grep -o 'href="/writing/eidos"' dist/blog/eidos-an-architecture-for-cheap-code/index.html
+grep -c 'adbarc92.github.io/writing/' dist/sitemap.xml      # 12
+grep -c 'adbarc92.github.io/writing/' dist/rss.xml          # at least 3
+grep -o 'src="[^"]*index[^"]*js"' dist/index.html            # asset paths begin /writing/
+grep -rn 'adbarc92.github.io/blog\|adbarc92.github.io/eidos' dist/ || echo "no root-relative leaks"
+```
+
+The last check is the important one: any URL still pointing at the domain root would send a reader to the treatise instead.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add vite.config.ts src/App.tsx src/lib scripts/prerender.ts README.md
+git commit -m "feat: serve from /writing as a GitHub Pages project site"
+```
+
+---
+
 ## Self-Review
 
 **Spec coverage.** Component 1 → Tasks 1, 2, 8. Component 2 → Tasks 2, 5. Component 3 → Tasks 5, 6. Component 4 → Tasks 7, 8, 9. Component 5 → Task 3. Component 6 → Tasks 2, 4, 7. Component 7 → Tasks 10, 11, 12, 13. No component is unimplemented.
