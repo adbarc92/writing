@@ -239,7 +239,7 @@ the content is markdown we already parse and the requirement is metadata plus re
 text.
 
 **`src/lib/site.ts`** — one module of constants shared by the app and the script:
-canonical origin (`https://adbarc92.github.io`, base path `/`, since this is a GitHub
+canonical origin (`https://alexanderdbarclay.com`, base path `/`, since this is a GitHub
 user page), site title, author, default description, default social image.
 
 **`scripts/prerender.ts`**, run after `vite build`, using `fs` plus the shared

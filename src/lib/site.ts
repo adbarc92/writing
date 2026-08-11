@@ -1,6 +1,6 @@
 /** Shared by the app and by scripts/prerender.ts. Keep free of import.meta. */
 export const SITE = {
-  origin: 'https://adbarc92.github.io',
+  origin: 'https://alexanderdbarclay.com',
   title: 'Alex Barclay',
   author: 'Alex Barclay',
   description:

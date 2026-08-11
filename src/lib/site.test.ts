@@ -19,11 +19,11 @@ describe('withBase', () => {
 describe('absoluteUrl', () => {
   it('builds a canonical URL under the base path', () => {
     expect(absoluteUrl('/blog/eidos-an-architecture-for-cheap-code'))
-      .toBe('https://adbarc92.github.io/writing/blog/eidos-an-architecture-for-cheap-code');
+      .toBe('https://alexanderdbarclay.com/writing/blog/eidos-an-architecture-for-cheap-code');
   });
 
   it('builds the site root correctly', () => {
-    expect(absoluteUrl('/')).toBe('https://adbarc92.github.io/writing/');
+    expect(absoluteUrl('/')).toBe('https://alexanderdbarclay.com/writing/');
   });
 
   it('never emits a double slash after the origin', () => {

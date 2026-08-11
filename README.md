@@ -1,6 +1,6 @@
 # adbarc92.github.io
 
-Personal portfolio site — [adbarc92.github.io/writing](https://adbarc92.github.io/writing)
+Personal portfolio site — [alexanderdbarclay.com/writing](https://alexanderdbarclay.com/writing)
 
 ## Stack
 

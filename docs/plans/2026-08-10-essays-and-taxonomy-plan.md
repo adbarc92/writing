@@ -16,7 +16,7 @@
 - **TypeScript strict mode is on, with `noUnusedLocals` and `noUnusedParameters`.** An unused import fails the build.
 - **All styling is inline React style objects.** The only exception is `src/index.css`, which holds custom properties and now the `.prose` block. Do not introduce CSS modules, Tailwind, or styled-components.
 - **No new runtime dependencies.** Exactly one new devDependency is authorised: `tsx`.
-- **Canonical origin is `https://adbarc92.github.io`** with base path `/` (a GitHub user page, so no repo-name prefix).
+- **Canonical origin is `https://alexanderdbarclay.com`** with base path `/` (a GitHub user page, so no repo-name prefix).
 - **Commit messages** use the repo's existing style (`feat:`, `fix:`, or a plain imperative sentence). Do **not** add `Co-Authored-By` lines or any "Generated with" attribution footer.
 - **Branch:** all work lands on `feat/essays-and-taxonomy`, which already exists and already holds the design document.
 - **Editorial rule for all content files:** the source documents arrived with UTF-8 misread as Latin-1. `â` stands for an em dash (—) except where noted, `â¦` for an ellipsis (…), and `Â§` for a section sign (§). The corrected text is given in full in Tasks 4 and 7 — copy it verbatim rather than re-deriving it.
