@@ -19,7 +19,7 @@ import type {
   EidosFrontmatter,
 } from '../src/lib/frontmatter';
 import { isPublished } from '../src/lib/frontmatter';
-import { SITE, pageTitle, DESCRIPTIONS } from '../src/lib/site';
+import { SITE, pageTitle, DESCRIPTIONS, absoluteUrl, BASE_PATH } from '../src/lib/site';
 import { escapeAttr, escapeXml } from '../src/lib/escape';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -126,7 +126,7 @@ const pages: Page[] = [
 const shell = readFileSync(join(DIST, 'index.html'), 'utf8');
 
 function render(page: Page): string {
-  const url = `${SITE.origin}${page.route}`;
+  const url = absoluteUrl(page.route);
   const tags = [
     `<title>${escapeAttr(page.title)}</title>`,
     `<meta name="description" content="${escapeAttr(page.description)}" />`,
@@ -139,7 +139,7 @@ function render(page: Page): string {
     `<meta property="og:url" content="${escapeAttr(url)}" />`,
     SITE.image ? `<meta property="og:image" content="${escapeAttr(SITE.origin + SITE.image)}" />` : '',
     `<meta name="twitter:card" content="${SITE.image ? 'summary_large_image' : 'summary'}" />`,
-    `<link rel="alternate" type="application/rss+xml" title="${escapeAttr(SITE.title)}" href="${SITE.origin}/rss.xml" />`,
+    `<link rel="alternate" type="application/rss+xml" title="${escapeAttr(SITE.title)}" href="${SITE.origin}${BASE_PATH}/rss.xml" />`,
   ]
     .filter(Boolean)
     .join('\n    ');
@@ -166,7 +166,7 @@ writeFileSync(join(DIST, '404.html'), shell, 'utf8');
 
 const rssItems = posts
   .map(p => {
-    const url = `${SITE.origin}/blog/${p.slug}`;
+    const url = absoluteUrl('/blog/' + p.slug);
     return `    <item>
       <title>${escapeXml(p.frontmatter.title)}</title>
       <link>${escapeXml(url)}</link>
@@ -183,10 +183,10 @@ writeFileSync(
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${escapeXml(SITE.title)}</title>
-    <link>${SITE.origin}/blog</link>
+    <link>${absoluteUrl('/blog')}</link>
     <description>${escapeXml(SITE.description)}</description>
     <language>en</language>
-    <atom:link href="${SITE.origin}/rss.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="${SITE.origin}${BASE_PATH}/rss.xml" rel="self" type="application/rss+xml" />
 ${rssItems}
   </channel>
 </rss>
@@ -198,7 +198,7 @@ writeFileSync(
   join(DIST, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(p => `  <url><loc>${escapeXml(SITE.origin + p.route)}</loc></url>`).join('\n')}
+${pages.map(p => `  <url><loc>${escapeXml(absoluteUrl(p.route))}</loc></url>`).join('\n')}
 </urlset>
 `,
   'utf8'

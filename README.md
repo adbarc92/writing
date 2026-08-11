@@ -1,6 +1,6 @@
 # adbarc92.github.io
 
-Personal portfolio site — [adbarc92.github.io](https://adbarc92.github.io)
+Personal portfolio site — [adbarc92.github.io/writing](https://adbarc92.github.io/writing)
 
 ## Stack
 
@@ -29,4 +29,4 @@ Blog posts and projects are Markdown files with YAML frontmatter:
 
 ## Deployment
 
-Pushes to `main` auto-deploy to GitHub Pages via GitHub Actions.
+Pushes to `main` auto-deploy to GitHub Pages via GitHub Actions. The domain root (`adbarc92.github.io`) is served by a separate project, `portfolio-treatise`; this repository is a GitHub Pages *project* site, published under `/writing/`.

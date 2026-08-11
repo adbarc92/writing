@@ -26,3 +26,20 @@ export const DESCRIPTIONS = {
   eidos:
     'An architecture for cheap code: humans design the Forms, agents fill them, fitness functions verify the fit.',
 } as const;
+
+/**
+ * The site is a GitHub Pages *project* site, served from a subpath rather than
+ * the domain root: the treatise occupies the root. Vite's `base`, the router's
+ * `basename`, and every absolute URL the build emits must agree on this value.
+ */
+export const BASE_PATH = '/writing';
+
+/** Prefix a root-relative app path with the base path. `/` becomes `/writing/`. */
+export function withBase(path: string): string {
+  return path === '/' ? `${BASE_PATH}/` : `${BASE_PATH}${path}`;
+}
+
+/** The canonical absolute URL for a route, e.g. `/blog/x` -> `https://…/writing/blog/x`. */
+export function absoluteUrl(route: string): string {
+  return `${SITE.origin}${withBase(route)}`;
+}

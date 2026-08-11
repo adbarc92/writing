@@ -65,3 +65,22 @@ describe('parseMarkdown', () => {
     expect(html).toContain('language-plaintext');
   });
 });
+
+describe('link rewriting', () => {
+  it('prefixes a root-relative content link with the base path', () => {
+    // The essay links to /eidos; at the domain root that is a different site.
+    expect(parseMarkdown('[continue here](/eidos)').html).toContain('href="/writing/eidos"');
+  });
+
+  it('leaves an external URL untouched', () => {
+    expect(parseMarkdown('[x](https://example.com/a)').html).toContain('href="https://example.com/a"');
+  });
+
+  it('leaves an anchor link untouched', () => {
+    expect(parseMarkdown('[x](#thesis)').html).toContain('href="#thesis"');
+  });
+
+  it('keeps the link text', () => {
+    expect(parseMarkdown('[continue here](/eidos)').html).toContain('>continue here</a>');
+  });
+});

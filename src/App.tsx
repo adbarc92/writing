@@ -8,6 +8,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import About from './pages/About';
 import Eidos from './pages/Eidos';
 import EidosDoc from './pages/EidosDoc';
+import { BASE_PATH } from './lib/site';
 
 const router = createBrowserRouter([
   {
@@ -24,7 +25,7 @@ const router = createBrowserRouter([
       { path: 'about', element: <About /> },
     ],
   },
-]);
+], { basename: BASE_PATH });
 
 export default function App() {
   return <RouterProvider router={router} />;

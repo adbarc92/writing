@@ -1,6 +1,7 @@
 import { parse as parseYaml } from 'yaml';
 import { marked, type Tokens } from 'marked';
 import hljs from 'highlight.js';
+import { withBase } from './site';
 
 // Configure marked with syntax highlighting
 marked.use({
@@ -11,6 +12,14 @@ marked.use({
       const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
       const highlighted = hljs.highlight(text, { language }).value;
       return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
+    },
+    link({ href, title, tokens }: Tokens.Link): string {
+      // Root-relative hrefs in content are app paths and need the base path;
+      // absolute URLs, mailto:, and #anchors are left exactly as authored.
+      const resolved = href.startsWith('/') ? withBase(href) : href;
+      const text = this.parser.parseInline(tokens);
+      const titleAttr = title ? ` title="${title}"` : '';
+      return `<a href="${resolved}"${titleAttr}>${text}</a>`;
     },
   },
 });
