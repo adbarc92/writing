@@ -5,7 +5,7 @@ thumbnail: ""
 tags: ["react", "typescript", "vite", "svg"]
 date: 2026-01-15
 links:
-  github: "https://github.com/yourusername/portfolio"
+  github: "https://github.com/adbarc92/writing"
 ---
 
 # Portfolio Site

@@ -10,6 +10,10 @@
 
 **Design doc:** [`docs/plans/2026-08-10-essays-and-taxonomy-design.md`](2026-08-10-essays-and-taxonomy-design.md)
 
+**Status:** Complete. All 15 tasks implemented and landed on `writing/main`; deployed to
+<https://alexanderdbarclay.com/writing/> on 2026-08-11. Checkboxes below are retained as a
+record of what shipped, not as remaining work.
+
 ## Global Constraints
 
 - **No test runner exists in this repo and this plan does not add one.** Every task verifies with `npm run build` (which runs `tsc -b`, so type errors fail the build), `npm run lint`, and — where the deliverable is a file — reading that file. Do not install Vitest, Jest, or Playwright.
@@ -73,7 +77,7 @@ A pure refactor. Behaviour must not change: the site renders identically before 
 
 Two pure modules rather than one: `markdown.ts` is behaviour (it configures `marked` on import), `frontmatter.ts` is shape. Task 11's Node script needs the shapes without the parser's side effects, and neither may contain `import.meta`.
 
-- [ ] **Step 1: Create `src/lib/markdown.ts`**
+- [x] **Step 1: Create `src/lib/markdown.ts`**
 
 Everything here must be free of `import.meta` — Node will import this file directly in Task 11.
 
@@ -118,7 +122,7 @@ export function slugFromOrderedPath(path: string): string {
 }
 ```
 
-- [ ] **Step 2: Create `src/lib/frontmatter.ts`**
+- [x] **Step 2: Create `src/lib/frontmatter.ts`**
 
 Moved verbatim out of `content.ts`. Task 2 extends these, Task 8 adds a third, and Task 11 imports them instead of redeclaring them.
 
@@ -148,7 +152,7 @@ export interface ProjectFrontmatter {
 }
 ```
 
-- [ ] **Step 3: Rewrite `src/lib/content.ts` against both**
+- [x] **Step 3: Rewrite `src/lib/content.ts` against both**
 
 Replace the entire file. The four exported functions keep their names, signatures, and behaviour — only their internals move. The `export type` line matters: pages import `BlogFrontmatter` from `./content` today, and this keeps that true.
 
@@ -231,17 +235,17 @@ export async function loadProject(slug: string): Promise<ContentEntry<ProjectFro
 }
 ```
 
-- [ ] **Step 4: Verify the build and lint pass**
+- [x] **Step 4: Verify the build and lint pass**
 
 Run: `npm run build && npm run lint`
 Expected: both succeed. A failure here is almost certainly an unused import left behind in `content.ts` (`noUnusedLocals` is on) — `slugFromOrderedPath` is deliberately not imported yet and must not be.
 
-- [ ] **Step 5: Verify the site is unchanged**
+- [x] **Step 5: Verify the site is unchanged**
 
 Run: `npm run dev`, then open `http://localhost:5173/blog`, click through to the Hello World post, and open `/projects`.
 Expected: identical to before — post list renders, post body renders with its code block highlighted, project list renders. No page imports were changed, so any import error means the re-export in Step 3 is missing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/markdown.ts src/lib/frontmatter.ts src/lib/content.ts
@@ -261,7 +265,7 @@ git commit -m "refactor: extract pure markdown parsing and frontmatter shapes"
 - Consumes: `parseMarkdown`, `slugFromDatedPath` from Task 1.
 - Produces: `type Category = 'software' | 'fiction' | 'politics' | 'meta'`; `CATEGORIES: readonly { id: Category; label: string }[]`; `BlogFrontmatter` extended with `category: Category` and `draft?: boolean` — all in `src/lib/frontmatter.ts`, all re-exported from `src/lib/content.ts`. `loadBlogPosts()` and `loadBlogPost()` now hide drafts in production builds.
 
-- [ ] **Step 1: Add the category taxonomy to `src/lib/frontmatter.ts`**
+- [x] **Step 1: Add the category taxonomy to `src/lib/frontmatter.ts`**
 
 Insert above the `BlogFrontmatter` interface:
 
@@ -277,7 +281,7 @@ export const CATEGORIES: readonly { id: Category; label: string }[] = [
 ];
 ```
 
-- [ ] **Step 2: Extend `BlogFrontmatter`, in the same file**
+- [x] **Step 2: Extend `BlogFrontmatter`, in the same file**
 
 ```ts
 export interface BlogFrontmatter {
@@ -290,7 +294,7 @@ export interface BlogFrontmatter {
 }
 ```
 
-- [ ] **Step 3: Re-export both from `src/lib/content.ts`**
+- [x] **Step 3: Re-export both from `src/lib/content.ts`**
 
 `Category` is a type and `CATEGORIES` is a value, so they need different export forms. Add beside the existing re-export line:
 
@@ -299,7 +303,7 @@ export type { Category } from './frontmatter';
 export { CATEGORIES } from './frontmatter';
 ```
 
-- [ ] **Step 4: Filter drafts in the two blog loaders**
+- [x] **Step 4: Filter drafts in the two blog loaders**
 
 Add above `loadBlogPosts`:
 
@@ -328,7 +332,7 @@ export async function loadBlogPost(slug: string): Promise<ContentEntry<BlogFront
 }
 ```
 
-- [ ] **Step 5: Backfill the existing post**
+- [x] **Step 5: Backfill the existing post**
 
 `category` is required, so the one existing post needs it. Replace the frontmatter block and remove the duplicate `# Hello World` heading — the page already renders `frontmatter.title` as the `<h1>`.
 
@@ -348,7 +352,7 @@ eventually game design.
 
 Leave the rest of the file (from `## What's Coming` onward) exactly as it is.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run: `npm run build && npm run lint`
 Expected: both pass.
@@ -374,7 +378,7 @@ Run `npm run dev` and confirm "Draft Probe" appears at `/blog`. Then run `npm ru
 
 Keep this file — Tasks 5 and 11 use it, and Task 13 deletes it.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/lib/frontmatter.ts src/lib/content.ts content/blog/2026-02-27-hello-world.md content/blog/2026-08-10-draft-probe.md
@@ -396,7 +400,7 @@ The global reset sets `margin: 0` on every element and nothing restores it for `
 - Consumes: nothing.
 - Produces: a `.prose` class, applied to every `<article>` that renders markdown. Task 9's `EidosDoc.tsx` will use it too.
 
-- [ ] **Step 1: Append the `.prose` block to `src/index.css`**
+- [x] **Step 1: Append the `.prose` block to `src/index.css`**
 
 Uses only existing custom properties; adds no tokens and no font changes.
 
@@ -490,7 +494,7 @@ Uses only existing custom properties; adds no tokens and no font changes.
 
 `display: block` plus `overflow-x: auto` on the table is what stops the specification's wide tables from forcing the whole page to scroll sideways on a phone.
 
-- [ ] **Step 2: Apply it in `src/pages/BlogPost.tsx`**
+- [x] **Step 2: Apply it in `src/pages/BlogPost.tsx`**
 
 Replace the `<article>` element:
 
@@ -503,16 +507,16 @@ Replace the `<article>` element:
 
 The inline `style={{ lineHeight: 1.8, color: 'var(--color-text)' }}` goes away — `.prose` now carries both.
 
-- [ ] **Step 3: Apply it in `src/pages/ProjectDetail.tsx`**
+- [x] **Step 3: Apply it in `src/pages/ProjectDetail.tsx`**
 
 Find the `<article>` that renders `project.html` and give it `className="prose"`, removing any inline `lineHeight`/`color` style that duplicates what `.prose` sets. Leave every other style in that file alone.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `npm run build && npm run lint`, then `npm run dev`.
 Expected: at `/blog/hello-world`, paragraphs are separated, `## What's Coming` has space above it, the bulleted list is indented with visible bullets, and the code block still highlights. At `/projects/portfolio-site`, the body is spaced and nothing else about the page has shifted.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/index.css src/pages/BlogPost.tsx src/pages/ProjectDetail.tsx
@@ -536,7 +540,7 @@ Three transformations were applied to the source and are already baked into the 
 2. The `*Draft v4 — publication critique applied…*` line is gone; it records how the draft was revised and is not part of the essay.
 3. The closing bracket — `*[The specification, and the systems that demonstrate it, continue from here.]*` — is now a real link to `/eidos`, keeping the author's words and replacing only the bracket.
 
-- [ ] **Step 1: Create the file with exactly this content**
+- [x] **Step 1: Create the file with exactly this content**
 
 ```markdown
 ---
@@ -596,17 +600,17 @@ The name is Plato's word for Form, and the metaphor has been doing quiet work th
 *The specification, and the systems that demonstrate it, [continue here](/eidos).*
 ```
 
-- [ ] **Step 2: Verify no mojibake survived**
+- [x] **Step 2: Verify no mojibake survived**
 
 Run: `grep -n 'â' content/blog/2026-08-10-eidos-an-architecture-for-cheap-code.md`
 Expected: no output. Any hit means a dash was pasted from the raw source instead of this plan.
 
-- [ ] **Step 3: Verify it renders**
+- [x] **Step 3: Verify it renders**
 
 Run: `npm run build && npm run dev`
 Expected: the essay is the top entry at `/blog`; `/blog/eidos-an-architecture-for-cheap-code` renders with a single `<h1>`, spaced paragraphs, and italics intact. The `/eidos` link at the foot will 404 until Task 9 — that is expected.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add content/blog/2026-08-10-eidos-an-architecture-for-cheap-code.md
@@ -629,7 +633,7 @@ git commit -m "content: publish Eidos essay"
 - Consumes: `BlogFrontmatter.draft` from Task 2.
 - Produces: `<DraftBadge draft={…} />`, which renders nothing outside the dev server; `formatDate(value: string | Date): string`; and tag links of the form `/blog?tag=<tag>`, which Task 6's filter reads.
 
-- [ ] **Step 0: Fix the off-by-one date bug**
+- [x] **Step 0: Fix the off-by-one date bug**
 
 Found by rendering the built site: a post dated `2026-08-10` displays as "August 9, 2026", and `2026-02-27` displays as "February 26". Every date on the site is wrong by a day for any reader west of Greenwich, including the essay's publication date.
 
@@ -681,7 +685,7 @@ git commit -m "fix: format frontmatter dates in UTC so they render the authored 
 
 Tags become links **on the post page only**. `BlogCard`'s entire card is already a `<Link>`, and an anchor inside an anchor is invalid HTML that React will render but browsers handle inconsistently. Card tags stay as static spans; the chip row from Task 6 is how filtering is discovered from the index.
 
-- [ ] **Step 1: Create `src/components/DraftBadge.tsx`**
+- [x] **Step 1: Create `src/components/DraftBadge.tsx`**
 
 The badge appears in two places with the same styling, and it owns one rule — never render in production — that must not be stated twice.
 
@@ -714,7 +718,7 @@ export default function DraftBadge({ draft, marginBottom = '0.5rem' }: Props) {
 }
 ```
 
-- [ ] **Step 2: Use it in both places**
+- [x] **Step 2: Use it in both places**
 
 In `src/components/BlogCard.tsx`, add `import DraftBadge from './DraftBadge';` and place this immediately above the `<time>` element, inside the `<Link>`:
 
@@ -728,7 +732,7 @@ In `src/pages/BlogPost.tsx`, add `import DraftBadge from '../components/DraftBad
       <DraftBadge draft={post.frontmatter.draft} marginBottom="0.75rem" />
 ```
 
-- [ ] **Step 3: Make the post page's tags links**
+- [x] **Step 3: Make the post page's tags links**
 
 Replace the tag `<span>` block in `src/pages/BlogPost.tsx` with:
 
@@ -752,12 +756,12 @@ Replace the tag `<span>` block in `src/pages/BlogPost.tsx` with:
 
 `Link` is already imported in this file.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `npm run build && npm run lint`, then `npm run dev`.
 Expected: "Draft Probe" carries a gold DRAFT badge on the index and on its own page. On the essay, the three tags are clickable and navigate to `/blog?tag=architecture` (which will not filter anything until Task 6 — the URL changing is what matters here). Run `npm run build && npm run preview` and confirm no badge appears anywhere.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/DraftBadge.tsx src/components/BlogCard.tsx src/pages/BlogPost.tsx
@@ -777,7 +781,7 @@ git commit -m "feat: add draft badge and clickable post tags"
 - Consumes: `CATEGORIES`, `Category` from Task 2; tag links from Task 5.
 - Produces: `/blog?category=<id>` and `/blog?tag=<tag>` as filterable, shareable URLs. Nothing later depends on this task.
 
-- [ ] **Step 1: Create `src/components/CategoryFilter.tsx`**
+- [x] **Step 1: Create `src/components/CategoryFilter.tsx`**
 
 Purely presentational — it holds no state and does not touch the URL.
 
@@ -831,7 +835,7 @@ export default function CategoryFilter({ counts, active, total, onSelect }: Prop
 }
 ```
 
-- [ ] **Step 2: Rewrite `src/pages/Blog.tsx`**
+- [x] **Step 2: Rewrite `src/pages/Blog.tsx`**
 
 Filter state lives in the URL so a filtered view is shareable and survives reload.
 
@@ -929,7 +933,7 @@ export default function Blog() {
 }
 ```
 
-- [ ] **Step 3: Relabel the nav entry in `src/components/NavBar.tsx`**
+- [x] **Step 3: Relabel the nav entry in `src/components/NavBar.tsx`**
 
 The route is unchanged; only the label moves, because "Blog" describes a feed carrying fiction and political writing poorly.
 
@@ -941,7 +945,7 @@ const links = [
 ];
 ```
 
-- [ ] **Step 4: Relabel it in `src/pages/Landing.tsx` too**
+- [x] **Step 4: Relabel it in `src/pages/Landing.tsx` too**
 
 The landing page keeps its own copy of the nav list, so changing only `NavBar` leaves the two disagreeing.
 
@@ -953,7 +957,7 @@ const navItems = [
 ];
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `npm run build && npm run lint`, then `npm run dev`.
 Expected at `/blog`:
@@ -963,7 +967,7 @@ Expected at `/blog`:
 - From the essay, clicking the `architecture` tag lands on `/blog?tag=architecture`, showing one post and a "Tagged" line with a working clear link.
 - Setting both — `/blog?category=meta&tag=architecture` — shows the empty state with a working "Show everything" link.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/CategoryFilter.tsx src/pages/Blog.tsx src/components/NavBar.tsx src/pages/Landing.tsx
@@ -991,7 +995,7 @@ Four transformations are already baked into the text below. Copy it verbatim:
 3. Cross-references that named source filenames now link to routes: `03-FORM-TEMPLATE.md` → `/eidos/form-template`, `04-INFRASTRUCTURE.md` → `/eidos/infrastructure`. Left as filenames they would point at files that no longer exist under those names.
 4. Nothing else changed.
 
-- [ ] **Step 1: Create `content/eidos/01-architecture.md`**
+- [x] **Step 1: Create `content/eidos/01-architecture.md`**
 
 ````markdown
 ---
@@ -1080,7 +1084,7 @@ A repository's Eidos conformance is measured, not asserted:
 Eidos is an arrangement of known ideas for a new economy, and claims novelty only for the arrangement. The lineages: Parnas's information hiding (1972) for what a Form conceals; Feathers's seams for where Forms live; Ousterhout's deep modules for their shape; Ford, Parsons & Kua's fitness functions for how they're guarded; and the Rails school's convention-over-configuration for everything a Form need not say. The name is Plato's word for Form, and the metaphor is meant seriously: the Form is what endures; implementations are copies produced by a capable, fallible craftsman — the demiurge of the *Timaeus*, who copies the Forms as faithfully as the material allows; it took the Gnostics, centuries later, to conclude his copies could not be taken on faith — and because the craftsman is fallible, every copy is measured against the Form by rule rather than accepted on trust.
 ````
 
-- [ ] **Step 2: Create `content/eidos/02-adoption.md`**
+- [x] **Step 2: Create `content/eidos/02-adoption.md`**
 
 ````markdown
 ---
@@ -1150,7 +1154,7 @@ For a multi-project portfolio, adopt in this order:
 4. **Prototypes and experiments never**, beyond inheriting the portfolio's shared gates.
 ````
 
-- [ ] **Step 3: Create `content/eidos/03-form-template.md`**
+- [x] **Step 3: Create `content/eidos/03-form-template.md`**
 
 Note the nested fences: this document contains fenced blocks of its own, which must survive intact.
 
@@ -1241,7 +1245,7 @@ The registry lying is the one failure mode Eidos cannot tolerate.
 - **The Blocks column is never empty.** A gate that blocks nothing is prose.
 ````
 
-- [ ] **Step 4: Create `content/eidos/04-infrastructure.md`**
+- [x] **Step 4: Create `content/eidos/04-infrastructure.md`**
 
 ````markdown
 ---
@@ -1298,12 +1302,12 @@ For a multi-machine tailnet lab, the drill order is: least-critical node first, 
 Six fitness functions, all deterministic, all blocking. That is E2 for an infrastructure estate, and it is roughly one weekend of work.
 ````
 
-- [ ] **Step 5: Verify no mojibake survived**
+- [x] **Step 5: Verify no mojibake survived**
 
 Run: `grep -rn 'â\|Â' content/eidos/`
 Expected: no output.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add content/eidos/
@@ -1324,7 +1328,7 @@ git commit -m "content: add Eidos specification documents"
 
 Only the list loader is written. Task 9's document page finds its document inside the loaded list — it needs every title anyway for the sidebar and prev/next — so a single-document lookup would be an export with no caller.
 
-- [ ] **Step 1: Add the frontmatter type to `src/lib/frontmatter.ts`**
+- [x] **Step 1: Add the frontmatter type to `src/lib/frontmatter.ts`**
 
 ```ts
 export interface EidosFrontmatter {
@@ -1335,7 +1339,7 @@ export interface EidosFrontmatter {
 }
 ```
 
-- [ ] **Step 2: Wire it through `src/lib/content.ts`**
+- [x] **Step 2: Wire it through `src/lib/content.ts`**
 
 Add `slugFromOrderedPath` to the `./markdown` import, add `EidosFrontmatter` to both the `import type` and the `export type` lines for `./frontmatter`, then add the glob beside the other two:
 
@@ -1346,7 +1350,7 @@ const eidosModules = import.meta.glob<string>('/content/eidos/*.md', {
 });
 ```
 
-- [ ] **Step 3: Add the loader at the end of the file**
+- [x] **Step 3: Add the loader at the end of the file**
 
 ```ts
 export async function loadEidosDocs(): Promise<ContentEntry<EidosFrontmatter>[]> {
@@ -1355,12 +1359,12 @@ export async function loadEidosDocs(): Promise<ContentEntry<EidosFrontmatter>[]>
 }
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `npm run build && npm run lint`
 Expected: both pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/frontmatter.ts src/lib/content.ts
@@ -1383,7 +1387,7 @@ git commit -m "feat: load the Eidos specification collection"
 
 Both pages load the whole collection rather than a single document: the sidebar and the prev/next links need every title anyway, and four small files make a second lookup pointless.
 
-- [ ] **Step 1: Create `src/pages/Eidos.tsx`**
+- [x] **Step 1: Create `src/pages/Eidos.tsx`**
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -1472,7 +1476,7 @@ export default function Eidos() {
 }
 ```
 
-- [ ] **Step 2: Create `src/pages/EidosDoc.tsx`**
+- [x] **Step 2: Create `src/pages/EidosDoc.tsx`**
 
 The two columns use `flexWrap` with a wide `flex-basis` on the article rather than a media query, so the sidebar stacks above the text on narrow screens without adding CSS.
 
@@ -1573,7 +1577,7 @@ export default function EidosDoc() {
 }
 ```
 
-- [ ] **Step 3: Register the routes in `src/App.tsx`**
+- [x] **Step 3: Register the routes in `src/App.tsx`**
 
 Add the two imports beside the others, and the two route entries after the projects routes:
 
@@ -1587,7 +1591,7 @@ import EidosDoc from './pages/EidosDoc';
       { path: 'eidos/:slug', element: <EidosDoc /> },
 ```
 
-- [ ] **Step 4: Add the nav entry in `src/components/NavBar.tsx`**
+- [x] **Step 4: Add the nav entry in `src/components/NavBar.tsx`**
 
 ```tsx
 const links = [
@@ -1609,7 +1613,7 @@ const navItems = [
 ];
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `npm run build && npm run lint`, then `npm run dev`.
 Expected:
@@ -1621,7 +1625,7 @@ Expected:
 - The essay's closing "continue here" link now resolves.
 - Narrowing the browser to phone width stacks the sidebar above the document.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/pages/Eidos.tsx src/pages/EidosDoc.tsx src/App.tsx src/components/NavBar.tsx src/pages/Landing.tsx
@@ -1642,7 +1646,7 @@ React 19 hoists `<title>` and `<meta>` elements rendered anywhere in the tree in
 - Consumes: nothing.
 - Produces: `SITE` — `{ origin, title, author, description, image?: string }` — imported by every page and, in Task 11, by the Node build script. It must contain no `import.meta` and no JSX.
 
-- [ ] **Step 1: Create `src/lib/site.ts`**
+- [x] **Step 1: Create `src/lib/site.ts`**
 
 `public/images/` currently holds only an empty `projects/` directory, so there is no social image to point at. `image` is therefore optional and unset; adding one later means dropping a file in `public/` and setting one field.
 
@@ -1663,7 +1667,7 @@ export function pageTitle(page?: string): string {
 }
 ```
 
-- [ ] **Step 2: Add head tags to the two dynamic pages**
+- [x] **Step 2: Add head tags to the two dynamic pages**
 
 In `src/pages/BlogPost.tsx`, inside the successful-render return, as the first children of the wrapping `<div>`:
 
@@ -1681,7 +1685,7 @@ In `src/pages/EidosDoc.tsx`, likewise:
 
 Both files need `import { pageTitle } from '../lib/site';`.
 
-- [ ] **Step 3: Add head tags to the six static pages**
+- [x] **Step 3: Add head tags to the six static pages**
 
 Same pattern, with literal strings. Add `import { pageTitle, SITE } from '../lib/site';` where `SITE` is used.
 
@@ -1694,12 +1698,12 @@ Same pattern, with literal strings. Add `import { pageTitle, SITE } from '../lib
 | `src/pages/About.tsx` | `<title>{pageTitle('About')}</title>` and `<meta name="description" content={SITE.description} />` |
 | `src/pages/Eidos.tsx` | `<title>{pageTitle('Eidos')}</title>` and `<meta name="description" content="An architecture for cheap code: humans design the Forms, agents fill them, fitness functions verify the fit." />` |
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `npm run build && npm run lint`, then `npm run dev`.
 Expected: the browser tab reads "Eidos: An Architecture for Cheap Code — Alex Barclay" on the essay, and changes as you navigate between the essay, `/eidos/adoption`, and `/projects` without a reload. Inspect `<head>` in devtools and confirm exactly one `<title>` and one `<meta name="description">` — a duplicate means a page rendered its tags in two branches.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/site.ts src/pages
@@ -1723,13 +1727,13 @@ Today a crawler requesting any URL gets `<div id="root"></div>` and the title "A
 
 Deliberately **not** using `hydrateRoot`: `main.tsx` calls `createRoot().render()`, which discards whatever sits inside `#root`. The injected HTML exists for clients that never run JavaScript; the browser throws it away and renders the real app microseconds later. Because the script never executes React, the Three.js gear background never runs under Node — which is what keeps this approach cheap.
 
-- [ ] **Step 1: Add the one authorised devDependency**
+- [x] **Step 1: Add the one authorised devDependency**
 
 Run: `npm install --save-dev tsx`
 
 Node 22 can strip types natively, but CI pins Node 20 and the flag is experimental there.
 
-- [ ] **Step 2: Include the script in the Node tsconfig**
+- [x] **Step 2: Include the script in the Node tsconfig**
 
 Open `tsconfig.node.json` and add `"scripts"` to its `include` array so `tsc -b` type-checks the script rather than ignoring it. If the array reads `["vite.config.ts"]`, it becomes:
 
@@ -1737,7 +1741,7 @@ Open `tsconfig.node.json` and add `"scripts"` to its `include` array so `tsc -b`
 "include": ["vite.config.ts", "scripts"]
 ```
 
-- [ ] **Step 3: Create `scripts/prerender.ts`**
+- [x] **Step 3: Create `scripts/prerender.ts`**
 
 ```ts
 /**
@@ -1911,7 +1915,7 @@ console.log(`prerender: wrote ${count} pages + 404.html`);
 
 The `<title>` replacement is what anchors the injected tags — the built shell always contains exactly one `<title>Alex Barclay</title>`, which becomes the whole metadata block.
 
-- [ ] **Step 4: Wire it into the build**
+- [x] **Step 4: Wire it into the build**
 
 In `package.json`:
 
@@ -1921,7 +1925,7 @@ In `package.json`:
 
 There is now no way to produce a deployable build without metadata.
 
-- [ ] **Step 5: Verify the output, not the browser**
+- [x] **Step 5: Verify the output, not the browser**
 
 Run: `npm run build`
 Expected: the final line reads `prerender: wrote 12 pages + 404.html` (5 static + 2 posts + 1 project + 4 Eidos documents; the draft probe is excluded).
@@ -1937,7 +1941,7 @@ grep -o '<title>[^<]*' dist/404.html   # bare "Alex Barclay"
 
 Then run `npm run preview` and confirm the site still behaves — navigation, filtering, the Eidos sidebar — because the injected HTML is replaced on mount and must leave no trace.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/prerender.ts package.json package-lock.json tsconfig.node.json
@@ -1955,7 +1959,7 @@ git commit -m "feat: prerender static HTML with per-page metadata"
 - Consumes: `posts` and `pages` from Task 11.
 - Produces: `dist/rss.xml`, `dist/sitemap.xml`.
 
-- [ ] **Step 1: Append the feed generation to `scripts/prerender.ts`**
+- [x] **Step 1: Append the feed generation to `scripts/prerender.ts`**
 
 Place this after the 404 write and before the `console.log`, then update the log line.
 
@@ -2016,7 +2020,7 @@ Update the final line to:
 console.log(`prerender: wrote ${count} pages + 404.html, rss.xml, sitemap.xml`);
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `npm run build`
 
@@ -2028,7 +2032,7 @@ grep -c 'draft-probe' dist/rss.xml dist/sitemap.xml   # 0 in both
 
 Expected: `items: 2` (the essay and Hello World, not the draft probe), 12 `<loc>` entries, and zero `draft-probe` matches in either file. Open `dist/rss.xml` in a browser to confirm it parses as XML rather than showing a parse error.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/prerender.ts
@@ -2047,7 +2051,7 @@ git commit -m "feat: emit RSS feed and sitemap at build time"
 - Consumes: everything above.
 - Produces: nothing further.
 
-- [ ] **Step 1: Drop the workflow's 404 step**
+- [x] **Step 1: Drop the workflow's 404 step**
 
 `scripts/prerender.ts` now writes `dist/404.html`, and leaving the workflow step in would overwrite it with a copy of the prerendered landing page — carrying the landing page's canonical URL onto every unknown URL. Remove these two lines from `.github/workflows/deploy.yml`:
 
@@ -2058,13 +2062,13 @@ git commit -m "feat: emit RSS feed and sitemap at build time"
 
 The `npm run build` step above it now produces `404.html` itself, so `npm run preview` finally behaves like production.
 
-- [ ] **Step 2: Remove the draft probe**
+- [x] **Step 2: Remove the draft probe**
 
 ```bash
 rm content/blog/2026-08-10-draft-probe.md
 ```
 
-- [ ] **Step 3: Full verification pass**
+- [x] **Step 3: Full verification pass**
 
 Run: `npm run build && npm run lint && npm run preview`
 
@@ -2079,7 +2083,7 @@ Confirm, against the built site:
   ```
 - An unknown deep URL under `npm run preview` still boots the SPA.
 
-- [ ] **Step 4: Commit and open the pull request**
+- [x] **Step 4: Commit and open the pull request**
 
 ```bash
 git add .github/workflows/deploy.yml
@@ -2115,13 +2119,13 @@ Two small refactors come first, because they are what makes the logic reachable 
 - **`escapeAttr` / `escapeXml` are currently module-private inside `scripts/prerender.ts`,** which executes its whole pipeline at import time. Importing that file from a test would run a build. Move both functions to `src/lib/escape.ts` — pure, no side effects, no `import.meta` — and import them in the script.
 - **The draft rule is written out four times** (the post list, the single-post lookup, and the prerender script's page and feed filters). The final review confirmed all four agree today; nothing keeps them agreeing. Collapse them onto one predicate.
 
-- [ ] **Step 1: Install Vitest**
+- [x] **Step 1: Install Vitest**
 
 Run: `npm install --save-dev vitest`
 
 This is the second and last new devDependency in the plan, and it is authorised by the decision to add this task.
 
-- [ ] **Step 2: Create `src/lib/escape.ts` and use it in the script**
+- [x] **Step 2: Create `src/lib/escape.ts` and use it in the script**
 
 Move both functions verbatim out of `scripts/prerender.ts`:
 
@@ -2154,7 +2158,7 @@ export function escapeXml(value: string): string {
 
 Delete both definitions from `scripts/prerender.ts` and add `import { escapeAttr, escapeXml } from '../src/lib/escape';`.
 
-- [ ] **Step 3: Add `isPublished` to `src/lib/frontmatter.ts`**
+- [x] **Step 3: Add `isPublished` to `src/lib/frontmatter.ts`**
 
 ```ts
 /**
@@ -2183,7 +2187,7 @@ In `scripts/prerender.ts`, the build never shows drafts, so pass `false`:
   .filter(p => isPublished(p.frontmatter, false))
 ```
 
-- [ ] **Step 4: Configure Vitest in `vite.config.ts`**
+- [x] **Step 4: Configure Vitest in `vite.config.ts`**
 
 ```ts
 /// <reference types="vitest/config" />
@@ -2206,7 +2210,7 @@ And in `package.json`, add to `scripts`:
     "test": "vitest run",
 ```
 
-- [ ] **Step 5: Write `src/lib/dates.test.ts`**
+- [x] **Step 5: Write `src/lib/dates.test.ts`**
 
 This is the regression that shipped one day early on every date on the site.
 
@@ -2233,7 +2237,7 @@ describe('formatDate', () => {
 });
 ```
 
-- [ ] **Step 6: Write `src/lib/markdown.test.ts`**
+- [x] **Step 6: Write `src/lib/markdown.test.ts`**
 
 The GFM and highlighting cases guard the `marked.use(...)` configuration that `About.tsx` was silently depending on before the final fix wave.
 
@@ -2307,7 +2311,7 @@ describe('parseMarkdown', () => {
 });
 ```
 
-- [ ] **Step 7: Write `src/lib/escape.test.ts`**
+- [x] **Step 7: Write `src/lib/escape.test.ts`**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -2346,7 +2350,7 @@ describe('escapeXml', () => {
 });
 ```
 
-- [ ] **Step 8: Write `src/lib/frontmatter.test.ts`**
+- [x] **Step 8: Write `src/lib/frontmatter.test.ts`**
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -2382,7 +2386,7 @@ describe('CATEGORIES', () => {
 });
 ```
 
-- [ ] **Step 9: Verify**
+- [x] **Step 9: Verify**
 
 Run: `npm test`
 Expected: all suites pass.
@@ -2392,7 +2396,7 @@ Expected: both pass, and the build still reports `prerender: wrote 12 pages + 40
 
 Then prove the tests can fail: temporarily change `timeZone: 'UTC'` to `timeZone: 'America/Chicago'` in `src/lib/dates.ts`, run `npm test`, and confirm the date suite goes red. Restore the file and confirm green. A suite that cannot fail is not a suite.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add package.json package-lock.json vite.config.ts src/lib scripts/prerender.ts
@@ -2417,7 +2421,7 @@ Everything the site emits currently assumes it sits at the domain root — canon
 **Interfaces:**
 - Produces: `BASE_PATH`, `withBase(path: string): string`, and `absoluteUrl(route: string): string` from `src/lib/site.ts`.
 
-- [ ] **Step 1: Add the base-path helpers to `src/lib/site.ts`**
+- [x] **Step 1: Add the base-path helpers to `src/lib/site.ts`**
 
 Append below the existing exports. The module stays pure — no `import.meta`, no side effects — because the prerender script imports it.
 
@@ -2440,11 +2444,11 @@ export function absoluteUrl(route: string): string {
 }
 ```
 
-- [ ] **Step 2: Set Vite's base**
+- [x] **Step 2: Set Vite's base**
 
 In `vite.config.ts`, add `base: '/writing/',` to the config object, above `plugins`. Vite's `base` requires the trailing slash; `BASE_PATH` deliberately omits it, because it is concatenated with paths that begin with one.
 
-- [ ] **Step 3: Give the router its basename**
+- [x] **Step 3: Give the router its basename**
 
 In `src/App.tsx`, import `BASE_PATH` from `./lib/site` and pass it as the router's basename:
 
@@ -2456,7 +2460,7 @@ const router = createBrowserRouter([
 
 Every `<Link to="/blog">` in the app then resolves correctly with no further change — react-router prepends the basename itself. Do not hand-prefix any `to` prop.
 
-- [ ] **Step 4: Rewrite root-relative links inside rendered markdown**
+- [x] **Step 4: Rewrite root-relative links inside rendered markdown**
 
 This is the part the router cannot fix. The essay ends with a link to `/eidos`, and two specification documents cross-link to `/eidos/form-template` and `/eidos/infrastructure`. Those become plain `<a href="/eidos">` in the rendered HTML, which at the domain root now belongs to the treatise — the reader would land on the wrong site.
 
@@ -2475,7 +2479,7 @@ In `src/lib/markdown.ts`, import `withBase` from `./site` and add a `link` rende
 
 `this.parser` is available because marked binds the renderer object as `this`; write it as a method, not an arrow function, or `this` will be undefined. Verify the exact behaviour with the tests in Step 7 rather than assuming the signature — marked's renderer API has changed across major versions, and this project is on v17.
 
-- [ ] **Step 5: Emit base-aware URLs from the prerender script**
+- [x] **Step 5: Emit base-aware URLs from the prerender script**
 
 In `scripts/prerender.ts`, import `absoluteUrl` and `BASE_PATH` alongside the existing `SITE` import, then replace every place a URL is built by hand:
 
@@ -2487,11 +2491,11 @@ In `scripts/prerender.ts`, import `absoluteUrl` and `BASE_PATH` alongside the ex
 
 The `dist/` directory layout does not change: Pages maps the repository's published output to `/writing/`, so `dist/blog/x/index.html` is served at `/writing/blog/x/`.
 
-- [ ] **Step 6: Update `README.md`**
+- [x] **Step 6: Update `README.md`**
 
 Change the site URL to `https://adbarc92.github.io/writing` and add one line under Deployment noting that the domain root is served by a separate project (`portfolio-treatise`) and that this repository is a Pages project site. Keep the rest of the file as it is.
 
-- [ ] **Step 7: Test the two things that can silently break**
+- [x] **Step 7: Test the two things that can silently break**
 
 Create `src/lib/site.test.ts`:
 
@@ -2563,7 +2567,7 @@ describe('link rewriting', () => {
 });
 ```
 
-- [ ] **Step 8: Verify**
+- [x] **Step 8: Verify**
 
 Run: `npm test && npm run build && npm run lint`
 Expected: all tests pass; the build still reports `prerender: wrote 12 pages + 404.html, rss.xml, sitemap.xml`.
@@ -2581,7 +2585,7 @@ grep -rn 'adbarc92.github.io/blog\|adbarc92.github.io/eidos' dist/ || echo "no r
 
 The last check is the important one: any URL still pointing at the domain root would send a reader to the treatise instead.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add vite.config.ts src/App.tsx src/lib scripts/prerender.ts README.md
