@@ -29,6 +29,12 @@ describe('absoluteUrl', () => {
   it('never emits a double slash after the origin', () => {
     expect(absoluteUrl('/blog').replace('https://', '')).not.toContain('//');
   });
+
+  it('resolves the og:image to an absolute URL under the base path', () => {
+    // Crawlers reject a relative og:image, and the asset lives under the
+    // project-site subpath rather than the domain root.
+    expect(absoluteUrl(SITE.image!)).toBe('https://alexanderdbarclay.com/writing/images/og.png');
+  });
 });
 
 describe('pageTitle', () => {

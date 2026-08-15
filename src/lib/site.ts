@@ -6,7 +6,7 @@ export const SITE = {
   description:
     'Software engineering, machine learning, and robotics — essays, projects, and the Eidos architecture.',
   /** Absolute path under public/, e.g. '/images/og.png'. Unset until one exists. */
-  image: undefined as string | undefined,
+  image: '/images/og.png' as string | undefined,
 };
 
 export function pageTitle(page?: string): string {
