@@ -1,8 +1,9 @@
 # Essays, Taxonomy, and the Eidos Section — Design
 
 **Date:** 2026-08-10
-**Branch:** `feat/essays-and-taxonomy`
-**Status:** approved, pending implementation plan
+**Branch:** `feat/essays-and-taxonomy`, landed on `writing/main`
+**Status:** Implemented and deployed 2026-08-11. See the
+[implementation plan](2026-08-10-essays-and-taxonomy-plan.md) for the task-level record.
 
 ---
 
