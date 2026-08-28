@@ -64,5 +64,5 @@ It is a Pages *project* site published under `/writing/` — the domain root (`a
 
 ## Remotes and branches
 
-- **`writing`** → `github.com/adbarc92/writing` — this project's real remote. `main` deploys; feature branches merge into it by PR.
-- **`origin`** → `github.com/adbarc92/adbarc92.github.io` — **not this project.** That branch holds the treatise's built static output and publishes the domain root. Never push this repository's source to it.
+- **`origin`** → `github.com/adbarc92/writing` — this project's only remote. `main` builds and deploys; feature branches merge into it by pull request.
+- The domain root (`alexanderdbarclay.com`) is published from a *different* repository, `adbarc92/adbarc92.github.io`, whose `main` holds the treatise's built static output. It is deliberately not a remote of this clone — don't add it back, and never push this repository's source to it.

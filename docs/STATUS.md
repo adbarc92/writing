@@ -13,6 +13,7 @@ _Last updated: 2026-08-28_
 | `npm run build` | green — tsc → vite → prerender (12 pages + `404.html`, `rss.xml`, `sitemap.xml`) |
 | `npm run test` | 40 passing across 5 files |
 | Deploy | GitHub Pages via `.github/workflows/deploy.yml`; last successful run 2026-08-15 |
+| HTTPS | enforced; certificate valid through 2026-10-30 |
 | Live routes | `/`, `/blog/*`, `/eidos`, `/about`, `/rss.xml` all 200 |
 | Social unfurl | `og:image` + `twitter:card=summary_large_image` verified on the live essay |
 
@@ -20,18 +21,16 @@ _Last updated: 2026-08-28_
 
 **Known gaps**
 
-- Pages HTTPS is not enforced (`https_enforced: false`). The certificate is valid and expires 2026-10-30.
-- The `origin` remote still points at `adbarc92/adbarc92.github.io` — the treatise's *publish* branch, not this project's source. Documented in `CLAUDE.md`; whether to rename or remove it is unresolved.
-- A stale `feat/essays-and-taxonomy` branch still exists on the `adbarc92.github.io` repo.
+- A stale `feat/essays-and-taxonomy` branch still exists on the `adbarc92.github.io` repo (harmless, but it is a copy of this project's source in the treatise's repository).
 - `og:image` is a single site-wide card. There are no per-post images.
 - The main JS bundle is ~2.0 MB (~596 KB gzipped), dominated by Three.js. No code-splitting.
+- `.claude/settings.json` sits untracked with machine-absolute paths in its allowlist; decide whether to ignore it or move it to `settings.local.json`.
 
 **Next steps**
 
-1. Decide the `origin` remote question — rename `writing` → `origin` and drop the old one, or remove `origin` outright.
-2. Enable HTTPS enforcement on the `writing` repo's Pages settings.
-3. Post the essay; run the URL through LinkedIn's Post Inspector first to prime its cache.
-4. Optional: code-split the Three.js background to cut first load.
+1. Post the essay; run the URL through LinkedIn's Post Inspector first to prime its cache.
+2. Optional: code-split the Three.js background to cut first load.
+3. Optional: delete the stale `feat/essays-and-taxonomy` branch from the `adbarc92.github.io` repo.
 
 ---
 
@@ -41,9 +40,11 @@ _Last updated: 2026-08-28_
 
 Audited the repo and reconciled git, GitHub, and the docs. Found `CLAUDE.md` badly drifted from reality and the local branch topology pointing at the wrong remote.
 
-- Rewrote `CLAUDE.md` against verified facts: the gear background is Three.js/WebGL (not SVG), a test framework *is* configured (Vitest, 40 tests), the build ends in a prerender step, the content pipeline is split across `markdown`/`frontmatter`/`site`/`dates`/`escape`, and the pages list now includes Eidos. Replaced the obsolete `master` / `new` branch section with a Remotes and branches section that spells out the `writing` vs. `origin` split.
-- Retargeted local `main` onto `writing/main` (verified lossless — it was a strict ancestor) and repointed its upstream away from the treatise repo.
+- Rewrote `CLAUDE.md` against verified facts: the gear background is Three.js/WebGL (not SVG), a test framework *is* configured (Vitest, 40 tests), the build ends in a prerender step, the content pipeline is split across `markdown`/`frontmatter`/`site`/`dates`/`escape`, and the pages list now includes Eidos. Replaced the obsolete `master` / `new` branch section with a Remotes and branches section that spells out which repository actually publishes what.
+- Retargeted local `main` onto this project's `main` (verified lossless — it was a strict ancestor) and repointed its upstream away from the treatise repo.
 - Deleted the merged `feat/essays-and-taxonomy` and `fix/og-card-and-contact-links` branches.
+- Dropped the treatise repository as a remote and renamed `writing` → `origin`, so bare `git push` / `git fetch` now act on this project rather than on the treatise's publish branch.
+- Enabled HTTPS enforcement on the repo's Pages settings (`https_enforced` was `false`).
 - Added `portfolio-website.zip` to `.gitignore`.
 - Created this file.
 
