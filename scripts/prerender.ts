@@ -74,7 +74,7 @@ const pages: Page[] = [
   { route: '/', title: pageTitle(), description: SITE.description, body: '', type: 'website' },
   {
     route: '/blog',
-    title: pageTitle('Writing'),
+    title: pageTitle('Essays'),
     description: DESCRIPTIONS.blog,
     body: '',
     type: 'website',

@@ -56,9 +56,9 @@ export default function Blog() {
 
   return (
     <div style={{ padding: '6rem 2rem 2rem', maxWidth: '48rem', margin: '0 auto' }}>
-      <title>{pageTitle('Writing')}</title>
+      <title>{pageTitle('Essays')}</title>
       <meta name="description" content={DESCRIPTIONS.blog} />
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '2rem' }}>Writing</h1>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '2rem' }}>Essays</h1>
 
       {activeTag && (
         <p style={{ color: 'var(--color-text-muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>

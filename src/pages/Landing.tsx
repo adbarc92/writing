@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { pageTitle, SITE } from '../lib/site';
 
 const navItems = [
-  { to: '/blog', label: 'Writing' },
+  { to: '/blog', label: 'Essays' },
   { to: '/eidos', label: 'Eidos' },
   { to: '/projects', label: 'Projects' },
   { to: '/about', label: 'About' },
