@@ -243,6 +243,13 @@ text.
 canonical origin (`https://alexanderdbarclay.com`, base path `/`, since this is a GitHub
 user page), site title, author, default description, default social image.
 
+> **Superseded.** The base path is `/writing`, not `/`. This site is a GitHub Pages
+> *project* site: the domain root is published from a separate treatise repository, so
+> the root was taken before this shipped. Task 15 in the implementation plan makes the
+> change; `BASE_PATH` in `src/lib/site.ts` is the single source of truth. The paragraph
+> above is left as written, because the assumption it records is why the base path had
+> to be retrofitted rather than designed in.
+
 **`scripts/prerender.ts`**, run after `vite build`, using `fs` plus the shared
 `markdown.ts`:
 
