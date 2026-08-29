@@ -16,11 +16,11 @@ record of what shipped, not as remaining work.
 
 ## Global Constraints
 
-- **No test runner exists in this repo and this plan does not add one.** Every task verifies with `npm run build` (which runs `tsc -b`, so type errors fail the build), `npm run lint`, and — where the deliverable is a file — reading that file. Do not install Vitest, Jest, or Playwright.
+- ~~**No test runner exists in this repo and this plan does not add one.**~~ **Superseded by Task 14,** which adds Vitest and a suite over the pure logic in `src/lib`. Tasks 1–13 were verified as this constraint describes: `npm run build` (which runs `tsc -b`, so type errors fail the build), `npm run lint`, and — where the deliverable is a file — reading that file. From Task 14 on, `npm run test` is also available and is the preferred check for anything in `src/lib`.
 - **TypeScript strict mode is on, with `noUnusedLocals` and `noUnusedParameters`.** An unused import fails the build.
 - **All styling is inline React style objects.** The only exception is `src/index.css`, which holds custom properties and now the `.prose` block. Do not introduce CSS modules, Tailwind, or styled-components.
 - **No new runtime dependencies.** Exactly one new devDependency is authorised: `tsx`.
-- **Canonical origin is `https://alexanderdbarclay.com`** with base path `/` (a GitHub user page, so no repo-name prefix).
+- **Canonical origin is `https://alexanderdbarclay.com`** with ~~base path `/` (a GitHub user page, so no repo-name prefix)~~ — **superseded by Task 15:** base path is `/writing`, because this is a Pages *project* site and the domain root belongs to the treatise. `BASE_PATH` in `src/lib/site.ts` is the single source of truth; `base` in `vite.config.ts` and the router's `basename` must agree with it.
 - **Commit messages** use the repo's existing style (`feat:`, `fix:`, or a plain imperative sentence). Do **not** add `Co-Authored-By` lines or any "Generated with" attribution footer.
 - **Branch:** all work lands on `feat/essays-and-taxonomy`, which already exists and already holds the design document.
 - **Editorial rule for all content files:** the source documents arrived with UTF-8 misread as Latin-1. `â` stands for an em dash (—) except where noted, `â¦` for an ellipsis (…), and `Â§` for a section sign (§). The corrected text is given in full in Tasks 4 and 7 — copy it verbatim rather than re-deriving it.
