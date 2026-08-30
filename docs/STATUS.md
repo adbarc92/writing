@@ -4,12 +4,14 @@
 
 _Last updated: 2026-08-30_
 
-**TL;DR.** A consolidation is under way: `adbarc92/portfolio-treatise` is absorbing this site onto
-Astro, so **the active code work is no longer in this repository**. It is in `portfolio-website/`,
-a gitignored clone of the treatise repo nested inside this one. Phases 1 and 2 are done and
-awaiting review as a stacked pair. The essays site itself is live and unchanged.
+**TL;DR.** The consolidation is absorbing this site onto Astro, so **the active code work is no
+longer in this repository**. Phases 1 and 2 are merged; phases 3 and 4 are open as a stacked pair.
+The live essays site is untouched and unchanged — nothing in the consolidation has deployed.
 
-**Where the work is**
+**Where the work is.** The survivor repository is named **`portfolio-treatise`**. Its working clone
+sits at `portfolio-website/` inside this repo and is gitignored — the directory name and the
+repository name do not match, which is the single most common way to get lost here. It is
+**private**, so it will not appear unless you are browsing your own repositories signed in.
 
 | Repo | Role | Visibility |
 | --- | --- | --- |
@@ -17,44 +19,92 @@ awaiting review as a stacked pair. The essays site itself is live and unchanged.
 | `adbarc92/portfolio-treatise` | the survivor; clone at `portfolio-website/` | private |
 | `adbarc92/adbarc92.github.io` | publish target, build output only | public |
 
+**Phases**
+
+| | Phase | State |
+| --- | --- | --- |
+| 0 | Land the five orphaned PRs | done |
+| 1 | Scaffold — React, RSS, sitemap integrations | merged 2026-08-30 |
+| 2 | Content and collections | merged 2026-08-30 |
+| 3 | `/writing/*` routes, static | **PR #6, open** |
+| 4 | Islands — category filter | **PR #7, open, stacked on #6** |
+| 5 | Feed, sitemap, metadata parity | next |
+| 6 | Gates and tests onto one runner | pending |
+| 7 | Cutover | pending |
+| 8 | Cleanup — archive this repo, fold in docs | pending |
+
 **Readiness**
 
 | Check | State |
 | --- | --- |
 | This repo — build / tests | green; 41 tests |
-| Treatise — build / tests / gate | green; 21 tests; content gate clean |
+| Treatise — build / tests / gate | green; 70 tests; content gate clean |
+| Route parity vs. live `sitemap.xml` | identical — all 12 URLs emitted, none added |
+| Treatise page under the merged build | byte-identical to its pre-change build; ships no React |
 | Live essays (`/writing/*`) | 200, HTTPS enforced, OG card verified |
-| Live root | shows `III. Essays` linking to the Eidos essay; no draft badge |
 | Treatise CI | **broken — 8 runs, 8 failures, never once succeeded** |
 
-**Open PRs.** `portfolio-treatise` #3 (phase 1, scaffold → `main`) and #4 (phase 2, content →
-#3's branch), stacked and unreviewed. None open here.
+**Scope change made in phase 4.** The design doc pairs the category filter with the gear
+background. Only the filter was built. Porting ~1,700 lines and a ~2 MB Three.js bundle that is
+already slated for redesign would be careful work spent carrying across the thing being replaced,
+so **the background becomes its own phase and will be built natively in Astro rather than ported**.
+The `/writing/*` pages currently have no background.
 
 **Known gaps**
 
+- **The filter island has not been checked in a browser.** Its rules and its rendering are covered
+  by tests and its hydration wiring is present in the output, but no browser has clicked a chip.
 - **Treatise CI has never worked.** Every deploy has been manual via `npm run deploy`. A merge
   deploys nothing. Probable cause is exhausted Actions minutes on a private repo; unconfirmed
-  because the billing API needs a `user` scope the local token lacks.
+  because the billing API needs a `user` scope the local token lacks. Making the merged repo
+  public — already a fixed decision — would fix this for free.
+- **The treatise repo has zero Actions secrets.** `PAGES_DEPLOY_TOKEN` is absent, and the CI deploy
+  job guards on it, so that job could never have succeeded either.
 - The two political essays are `draft: true` and not publishable: prose drafted from the approved
   abstracts rather than written, and every figure in *The Price of the Ticket* needs a source.
 - Two of the four CI gates `AGENT-PROMPT.md` documents were never built — the link gate and the
   rendered-page claims gate.
-- **The treatise repo has zero Actions secrets.** `EMBARGO_TERMS` is gone, but so is
-  `PAGES_DEPLOY_TOKEN`, which the CI deploy job guards on — so that job could never have
-  succeeded either, independently of whatever stops the build job from running any steps.
-- `og:image` is a single site-wide card; the Three.js bundle is ~2.0 MB (~596 KB gz).
+- The React runtime is ~187 KB (~61 KB gzipped) on the blog index, to filter two published posts.
+  Named rather than decided.
+- `og:image` is a single site-wide card.
 
 **Next steps**
 
-1. Review the stacked pair, `portfolio-treatise` #3 then #4.
-2. Phase 3 — the `/writing/*` routes. See the handoff brief for the exact starting command and the
-   verification the phase must pass.
-3. Decide the treatise's repo visibility; going public also fixes the CI failure for free.
-4. Post the Eidos essay — run it through LinkedIn's Post Inspector first to prime the cache.
+1. Review the stacked pair, `portfolio-treatise` #6 then #7.
+2. Click a chip in `npm run dev` before #7 merges — the one thing tests cannot cover.
+3. Phase 5 — feed, sitemap, and metadata parity, verified by diffing `<head>` against the live
+   pages rather than by inspection.
+4. Decide the treatise's repo visibility; going public also fixes the CI failure for free.
+5. The gear redesign, as its own phase — more abstract, matched to the landing page.
+6. Post the Eidos essay — run it through LinkedIn's Post Inspector first to prime the cache.
 
 ---
 
 ## Session log
+
+### 2026-08-30 — Consolidation phases 3 and 4
+
+Built the essay routes and the category filter in `portfolio-treatise`. Opened as a stacked pair,
+#6 then #7. Nothing deployed.
+
+- **Phase 3 — routes.** Eight page files under `src/pages/writing/` emitting the twelve URLs the
+  live sitemap lists, verified by diffing the emitted route list against it rather than by
+  inspection. The prefix comes from the directory, not from config: `base` stays `"/"` so the
+  treatise does not move with it. Three plain modules carry logic the structure cannot: UTC date
+  formatting, the draft rule, and a remark plugin restoring the `/writing` prefix on the four
+  root-relative links content authors already wrote.
+- **Fixed a latent defect in the content gate.** Pointing it at essay prose for the first time
+  failed the build twice, on text mentioning nothing retracted — `rediscovered` matched "Redis" as
+  a substring, and `restored is` matched it once whitespace was stripped. Both were false positives
+  from an unbounded matcher. Terms now match on word boundaries while still tolerating mangling, so
+  `R-e-d-i-s` and `ChromeWebStore` are still caught. No term was removed; scoping was not available
+  as the fix, because the false positives were in reader-facing prose.
+- **Phase 4 — the filter island, narrowed.** Only the category filter was built. The gear
+  background was left for its own phase rather than ported, since it is already slated for
+  redesign. The island server-renders, so a reader without JavaScript still sees every essay.
+- **Corrected this document**, which had described phases 1 and 2 as unreviewed open PRs some hours
+  after they merged, and clarified that the survivor repository is named `portfolio-treatise` while
+  its clone directory is `portfolio-website`.
 
 ### 2026-08-29 — Embargo lift, funnel closed, consolidation begun
 
