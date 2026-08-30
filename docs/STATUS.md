@@ -2,39 +2,82 @@
 
 ## State summary
 
-_Last updated: 2026-08-28_
+_Last updated: 2026-08-29_
 
-**TL;DR.** The Eidos essay and its four-document specification are published, prerendered, and live at `alexanderdbarclay.com/writing/`. Shared links unfurl with a real Open Graph card and `/about` points at real accounts, so the site is ready to promote. No work is in flight.
+**TL;DR.** A consolidation is under way: `adbarc92/portfolio-treatise` is absorbing this site onto
+Astro, so **the active code work is no longer in this repository**. It is in `portfolio-website/`,
+a gitignored clone of the treatise repo nested inside this one. Phases 1 and 2 are done and
+awaiting review as a stacked pair. The essays site itself is live and unchanged.
+
+**Where the work is**
+
+| Repo | Role | Visibility |
+| --- | --- | --- |
+| `adbarc92/writing` | this one — being absorbed; still serving `/writing/` | public |
+| `adbarc92/portfolio-treatise` | the survivor; clone at `portfolio-website/` | private |
+| `adbarc92/adbarc92.github.io` | publish target, build output only | public |
 
 **Readiness**
 
 | Check | State |
 | --- | --- |
-| `npm run build` | green — tsc → vite → prerender (12 pages + `404.html`, `rss.xml`, `sitemap.xml`) |
-| `npm run test` | 40 passing across 5 files |
-| Deploy | GitHub Pages via `.github/workflows/deploy.yml`; last successful run 2026-08-15 |
-| HTTPS | enforced; certificate valid through 2026-10-30 |
-| Live routes | `/`, `/blog/*`, `/eidos`, `/about`, `/rss.xml` all 200 |
-| Social unfurl | `og:image` + `twitter:card=summary_large_image` verified on the live essay |
+| This repo — build / tests | green; 41 tests |
+| Treatise — build / tests / gate | green; 21 tests; content gate clean |
+| Live essays (`/writing/*`) | 200, HTTPS enforced, OG card verified |
+| Live root | now shows `III. Essays` linking to the Eidos essay |
+| Treatise CI | **broken — 8 runs, 8 failures, never once succeeded** |
 
-**Open PRs.** None. PR #1 (OG card and contact links) merged 2026-08-15.
+**Open PRs.** `portfolio-treatise` #3 (phase 1, scaffold → `main`) and #4 (phase 2, content →
+#3's branch), stacked and unreviewed. None open here.
 
 **Known gaps**
 
-- A stale `feat/essays-and-taxonomy` branch still exists on the `adbarc92.github.io` repo (harmless, but it is a copy of this project's source in the treatise's repository).
-- `og:image` is a single site-wide card. There are no per-post images.
-- The main JS bundle is ~2.0 MB (~596 KB gzipped), dominated by Three.js. No code-splitting.
-- `.claude/settings.json` sits untracked with machine-absolute paths in its allowlist; decide whether to ignore it or move it to `settings.local.json`.
+- **Treatise CI has never worked.** Every deploy has been manual via `npm run deploy`. A merge
+  deploys nothing. Probable cause is exhausted Actions minutes on a private repo; unconfirmed
+  because the billing API needs a `user` scope the local token lacks.
+- A `[DRAFT — AWAITING ALEX'S VOICE]` badge is **live on the front page** — the Essays section
+  intro gained a clause that is not Alex's prose. One-word fix in `claims.yaml` once approved.
+- The two political essays are `draft: true` and not publishable: prose drafted from the approved
+  abstracts rather than written, and every figure in *The Price of the Ticket* needs a source.
+- Two of the four CI gates `AGENT-PROMPT.md` documents were never built — the link gate and the
+  rendered-page claims gate.
+- The `EMBARGO_TERMS` secret still exists in the treatise repo though nothing reads it.
+- `og:image` is a single site-wide card; the Three.js bundle is ~2.0 MB (~596 KB gz).
+- A stale `feat/essays-and-taxonomy` branch remains on `adbarc92.github.io`.
 
 **Next steps**
 
-1. Post the essay; run the URL through LinkedIn's Post Inspector first to prime its cache.
-2. Optional: code-split the Three.js background to cut first load.
-3. Optional: delete the stale `feat/essays-and-taxonomy` branch from the `adbarc92.github.io` repo.
+1. Review the stacked pair, `portfolio-treatise` #3 then #4.
+2. Phase 3 — the `/writing/*` routes. See the handoff brief for the exact starting command and the
+   verification the phase must pass.
+3. Decide the treatise's repo visibility; going public also fixes the CI failure for free.
+4. Post the Eidos essay — run it through LinkedIn's Post Inspector first to prime the cache.
 
 ---
 
 ## Session log
+
+### 2026-08-29 — Embargo lift, funnel closed, consolidation begun
+
+Long session across three repositories. Full detail in
+[`handoffs/fd313ec2-4ab1-4de7-806e-bd92f74a42b1.md`](handoffs/fd313ec2-4ab1-4de7-806e-bd92f74a42b1.md).
+
+- **Lifted the embargo** in the treatise. The gate was doing three jobs and only one was the
+  embargo — it also holds the retracted-claims list and the banned vocabulary, neither of which
+  lifted — so it was renamed `content-gate.mjs` and kept rather than deleted, and its canary was
+  promoted from a CLI flag into real tests.
+- **Closed the funnel.** The front page had no path to the essays. The cause was not a missing
+  link: the Essays section was gated on `url: ""`, exactly as designed. Filling it opened the
+  section. Discovered while verifying that **the treatise's CI has never once succeeded** and every
+  deploy has been manual — the merge alone would not have shipped it. Deployed by hand; the root
+  now links to Eidos.
+- **Drafted the two political-economy essays** the treatise had specified since July, under the
+  `politics` category, `draft: true`.
+- **Corrected documentation drift** in both repos: two plan premises that later tasks overturned,
+  and a deploy target that was never used.
+- **Began consolidation.** Design merged; phases 1 and 2 built. Registering React broke the content
+  gate on `case"seamless":` inside React's attribute table, which surfaced a real defect — the two
+  term lists needed different scopes, and now have them.
 
 ### 2026-08-28 — Repo hygiene and documentation refresh
 
