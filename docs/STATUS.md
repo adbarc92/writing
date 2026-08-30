@@ -2,7 +2,7 @@
 
 ## State summary
 
-_Last updated: 2026-08-29_
+_Last updated: 2026-08-30_
 
 **TL;DR.** A consolidation is under way: `adbarc92/portfolio-treatise` is absorbing this site onto
 Astro, so **the active code work is no longer in this repository**. It is in `portfolio-website/`,
@@ -24,7 +24,7 @@ awaiting review as a stacked pair. The essays site itself is live and unchanged.
 | This repo — build / tests | green; 41 tests |
 | Treatise — build / tests / gate | green; 21 tests; content gate clean |
 | Live essays (`/writing/*`) | 200, HTTPS enforced, OG card verified |
-| Live root | now shows `III. Essays` linking to the Eidos essay |
+| Live root | shows `III. Essays` linking to the Eidos essay; no draft badge |
 | Treatise CI | **broken — 8 runs, 8 failures, never once succeeded** |
 
 **Open PRs.** `portfolio-treatise` #3 (phase 1, scaffold → `main`) and #4 (phase 2, content →
@@ -35,15 +35,14 @@ awaiting review as a stacked pair. The essays site itself is live and unchanged.
 - **Treatise CI has never worked.** Every deploy has been manual via `npm run deploy`. A merge
   deploys nothing. Probable cause is exhausted Actions minutes on a private repo; unconfirmed
   because the billing API needs a `user` scope the local token lacks.
-- A `[DRAFT — AWAITING ALEX'S VOICE]` badge is **live on the front page** — the Essays section
-  intro gained a clause that is not Alex's prose. One-word fix in `claims.yaml` once approved.
 - The two political essays are `draft: true` and not publishable: prose drafted from the approved
   abstracts rather than written, and every figure in *The Price of the Ticket* needs a source.
 - Two of the four CI gates `AGENT-PROMPT.md` documents were never built — the link gate and the
   rendered-page claims gate.
-- The `EMBARGO_TERMS` secret still exists in the treatise repo though nothing reads it.
+- **The treatise repo has zero Actions secrets.** `EMBARGO_TERMS` is gone, but so is
+  `PAGES_DEPLOY_TOKEN`, which the CI deploy job guards on — so that job could never have
+  succeeded either, independently of whatever stops the build job from running any steps.
 - `og:image` is a single site-wide card; the Three.js bundle is ~2.0 MB (~596 KB gz).
-- A stale `feat/essays-and-taxonomy` branch remains on `adbarc92.github.io`.
 
 **Next steps**
 
