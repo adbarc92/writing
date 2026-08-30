@@ -5,8 +5,9 @@
 _Last updated: 2026-08-30_
 
 **TL;DR.** The consolidation is absorbing this site onto Astro, so **the active code work is no
-longer in this repository**. Phases 1 and 2 are merged; phases 3 and 4 are open as a stacked pair.
-The live essays site is untouched and unchanged — nothing in the consolidation has deployed.
+longer in this repository**. **Phases 0 through 6 are merged.** Everything that remains is the
+cutover and the cleanup behind it. The live essays site is untouched and unchanged — nothing in the
+consolidation has deployed, and nothing will until phase 7 is run deliberately.
 
 **Where the work is.** The survivor repository is named **`portfolio-treatise`**. Its working clone
 sits at `portfolio-website/` inside this repo and is gitignored — the directory name and the
@@ -24,13 +25,13 @@ repository name do not match, which is the single most common way to get lost he
 | | Phase | State |
 | --- | --- | --- |
 | 0 | Land the five orphaned PRs | done |
-| 1 | Scaffold — React, RSS, sitemap integrations | merged 2026-08-30 |
-| 2 | Content and collections | merged 2026-08-30 |
-| 3 | `/writing/*` routes, static | **PR #6, open** |
-| 4 | Islands — category filter | **PR #7, open, stacked on #6** |
-| 5 | Feed, sitemap, metadata parity | next |
-| 6 | Gates and tests onto one runner | pending |
-| 7 | Cutover | pending |
+| 1 | Scaffold — React, RSS, sitemap integrations | merged |
+| 2 | Content and collections | merged |
+| 3 | `/writing/*` routes, static | merged |
+| 4 | Islands — category filter | merged |
+| 5 | Feed, sitemap, metadata parity | merged |
+| 6 | Gates and tests — one runner | merged |
+| 7 | **Cutover** | **next; the only phase that touches the live site** |
 | 8 | Cleanup — archive this repo, fold in docs | pending |
 
 **Readiness**
@@ -38,22 +39,30 @@ repository name do not match, which is the single most common way to get lost he
 | Check | State |
 | --- | --- |
 | This repo — build / tests | green; 41 tests |
-| Treatise — build / tests / gate | green; 70 tests; content gate clean |
-| Route parity vs. live `sitemap.xml` | identical — all 12 URLs emitted, none added |
+| Treatise — build / tests / gate | green; 90 tests; content gate and canary clean |
+| Route parity vs. live `sitemap.xml` | identical — all 12 URLs, none added |
+| `<head>` parity vs. live | identical across all 8 page shapes |
+| Feed and `/writing/sitemap.xml` | identical to live, guids included |
 | Treatise page under the merged build | byte-identical to its pre-change build; ships no React |
+| Category filter island | **verified in a browser 2026-08-30 — chips and filtering work** |
 | Live essays (`/writing/*`) | 200, HTTPS enforced, OG card verified |
 | Treatise CI | **broken — 8 runs, 8 failures, never once succeeded** |
 
-**Scope change made in phase 4.** The design doc pairs the category filter with the gear
-background. Only the filter was built. Porting ~1,700 lines and a ~2 MB Three.js bundle that is
-already slated for redesign would be careful work spent carrying across the thing being replaced,
-so **the background becomes its own phase and will be built natively in Astro rather than ported**.
-The `/writing/*` pages currently have no background.
+**Decisions taken during the build that departed from the design doc**
+
+- **The gear background was not ported.** The doc pairs it with the category filter in phase 4;
+  only the filter was built. Porting ~1,700 lines and a ~2 MB Three.js bundle already slated for
+  redesign would be work spent carrying across the thing being replaced. The background becomes its
+  own phase, built natively. **`/writing/*` currently has no background.**
+- **`node:test` stays the single runner.** The doc chose Vitest "because it is the larger suite" —
+  41 against 11. That arithmetic died: the treatise suite is now 90, and almost none of this repo's
+  41 have anywhere to go, since they cover `escape.ts`, `marked` configuration, and `BASE_PATH`
+  helpers that the migration deletes. All 41 were audited against what replaced them; no coverage
+  was lost. Adopting Vitest would add three dev dependencies to relocate tests that should not
+  survive.
 
 **Known gaps**
 
-- **The filter island has not been checked in a browser.** Its rules and its rendering are covered
-  by tests and its hydration wiring is present in the output, but no browser has clicked a chip.
 - **Treatise CI has never worked.** Every deploy has been manual via `npm run deploy`. A merge
   deploys nothing. Probable cause is exhausted Actions minutes on a private repo; unconfirmed
   because the billing API needs a `user` scope the local token lacks. Making the merged repo
@@ -63,24 +72,53 @@ The `/writing/*` pages currently have no background.
 - The two political essays are `draft: true` and not publishable: prose drafted from the approved
   abstracts rather than written, and every figure in *The Price of the Ticket* needs a source.
 - Two of the four CI gates `AGENT-PROMPT.md` documents were never built — the link gate and the
-  rendered-page claims gate.
+  rendered-page claims gate. Building them is explicitly out of scope for the migration.
 - The React runtime is ~187 KB (~61 KB gzipped) on the blog index, to filter two published posts.
   Named rather than decided.
 - `og:image` is a single site-wide card.
 
 **Next steps**
 
-1. Review the stacked pair, `portfolio-treatise` #6 then #7.
-2. Click a chip in `npm run dev` before #7 merges — the one thing tests cannot cover.
-3. Phase 5 — feed, sitemap, and metadata parity, verified by diffing `<head>` against the live
-   pages rather than by inspection.
-4. Decide the treatise's repo visibility; going public also fixes the CI failure for free.
-5. The gear redesign, as its own phase — more abstract, matched to the landing page.
-6. Post the Eidos essay — run it through LinkedIn's Post Inspector first to prime the cache.
+1. **Phase 7 — cutover.** Ordered, because the shadowing risk is real: deploy the merged build,
+   *then* disable Pages on `adbarc92/writing`, then verify. There is a window where the old
+   deployment still serves `/writing/*`, and both halves are correct during it. Rollback is
+   re-enabling Pages on this repo.
+2. Decide the treatise's repo visibility. Going public is already a fixed decision and also fixes
+   the CI failure for free.
+3. Phase 8 — archive this repo, fold `docs/` into the merged one, rewrite `CLAUDE.md` and
+   `AGENT-PROMPT.md` for the merged reality including the gate table.
+4. The gear redesign, as its own phase — more abstract, matched to the landing page.
+5. Post the Eidos essay — run it through LinkedIn's Post Inspector first to prime the cache.
 
 ---
 
 ## Session log
+
+### 2026-08-30 (later) — Consolidation phases 5 and 6
+
+Metadata parity and the test-runner question. Merged as PR #8 in `portfolio-treatise`. Still
+nothing deployed.
+
+- **Phase 5 — parity.** The full head on every page: author, the Open Graph set, `twitter:card`,
+  the feed's alternate link, and `og:type` of `article` on posts, specs, and projects. Verified by
+  diffing the built `<head>` of all eight page shapes against the live pages, and the feed and
+  sitemap against theirs. All identical.
+- **Three things that would have broken quietly.** The OG image was not in the treatise repo at
+  all — every live page references `/writing/images/og.png`, which existed only here, so the cards
+  would have 404'd at cutover with nothing in the build to hint at it. `@astrojs/rss` appends a
+  trailing slash to item links by default, and the item link is the guid, so every old post would
+  have republished into every subscriber's reader as new. And the emitted sitemap kept a trailing
+  slash the canonicals drop, pointing search engines at URLs that redirect to the canonical form.
+- **The site-wide sitemap now covers the treatise and the essays together**, which neither half
+  could do while they were separate builds. `/writing/sitemap.xml` is kept beside it, byte-identical
+  to the live one, because search engines have already fetched that URL.
+- **Phase 6 — the runner.** The design doc's premise was stale; see the decisions section above.
+  The audit verified rather than assumed that Astro's pipeline still renders GFM tables and still
+  highlights all three code blocks — under `github-dark`, the same theme `highlight.js` used, so
+  that risk was smaller than feared. It also caught Shiki inlining its theme's background onto the
+  `<pre>`, which beat the stylesheet and left code blocks as GitHub-coloured panels inside the
+  site's own border. A transformer drops that one declaration and keeps Shiki's token colours.
+- **The filter island was checked in a browser** and works, closing the one gap tests could not.
 
 ### 2026-08-30 — Consolidation phases 3 and 4
 
